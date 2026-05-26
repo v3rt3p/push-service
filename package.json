@@ -1,7 +1,7 @@
 {
-  "name": "alice-push-service",
+  "name": "@v3rt3p/push-service",
   "version": "1.0.0",
-  "description": "External event push service for quasar-service",
+  "description": "External event push service for quasar/marusya servers",
   "main": "src/main.ts",
   "scripts": {
     "start": "tsx src/main.ts"

@@ -46,38 +46,25 @@ client.on('error', error => {
 client.on('message', (topic, payload) => {
   if (topic === mqttAllRawTopic) {
     const text = payload.toString('utf8')
-    fetch(`${environment.QUASAR_API_URL}/devices/all/push-raw`, {
-      body: JSON.stringify({
-        eventText: text
-      }),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      method: 'POST'
-    }).catch(error => {
-      logger.error(`Failed to push event: ${error}`)
-    })
+    for (const url of environment.API_URLS) {
+      fetch(`${url}/devices/all/push-raw`, {
+        body: JSON.stringify({
+          eventText: text
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST'
+      }).catch(error => {
+        logger.error(`Failed to push event: ${error}`)
+      })
+    }
     return
   }
   if (topic === mqttAllTopic) {
     const text = payload.toString('utf8')
-    fetch(`${environment.QUASAR_API_URL}/devices/all/push`, {
-      body: JSON.stringify({
-        eventText: text
-      }),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      method: 'POST'
-    }).catch(error => {
-      logger.error(`Failed to push event: ${error}`)
-    })
-  }
-  {
-    const matches = mqttDeviceTopicRegex.exec(topic)
-    if (matches) {
-      const text = payload.toString('utf8')
-      fetch(`${environment.QUASAR_API_URL}/devices/${matches[1]}/push`, {
+    for (const url of environment.API_URLS) {
+      fetch(`${url}/devices/all/push`, {
         body: JSON.stringify({
           eventText: text
         }),
@@ -91,20 +78,41 @@ client.on('message', (topic, payload) => {
     }
   }
   {
+    const matches = mqttDeviceTopicRegex.exec(topic)
+    if (matches) {
+      const text = payload.toString('utf8')
+      for (const url of environment.API_URLS) {
+        fetch(`${url}/devices/${matches[1]}/push`, {
+          body: JSON.stringify({
+            eventText: text
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method: 'POST'
+        }).catch(error => {
+          logger.error(`Failed to push event: ${error}`)
+        })
+      }
+    }
+  }
+  {
     const matches = mqttDeviceRawTopicRegex.exec(topic)
     if (matches) {
       const text = payload.toString('utf8')
-      fetch(`${environment.QUASAR_API_URL}/devices/${matches[1]}/push-raw`, {
-        body: JSON.stringify({
-          eventText: text
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        method: 'POST'
-      }).catch(error => {
-        logger.error(`Failed to push event: ${error}`)
-      })
+      for (const url of environment.API_URLS) {
+        fetch(`${url}/devices/${matches[1]}/push-raw`, {
+          body: JSON.stringify({
+            eventText: text
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method: 'POST'
+        }).catch(error => {
+          logger.error(`Failed to push event: ${error}`)
+        })
+      }
     }
   }
 })
