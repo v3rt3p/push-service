@@ -11,17 +11,13 @@ const client = connect(environment.MQTT_URL, {
   ca: [fs.readFileSync(environment.MQTT_CA_CERTIFICATE_PATH)]
 })
 
-const mqttAllTopic = `${environment.MQTT_TOPIC_PREFIX}/event`
 const mqttAllRawTopic = `${environment.MQTT_TOPIC_PREFIX}/event/raw`
-const mqttDeviceTopic = `${environment.MQTT_TOPIC_PREFIX}/+/event`
 const mqttDeviceRawTopic = `${environment.MQTT_TOPIC_PREFIX}/+/event/raw`
 const mqttDeviceTopicRegex = new RegExp(`^${environment.MQTT_TOPIC_PREFIX}/([A-Z0-9]+)/event$`)
 const mqttDeviceRawTopicRegex = new RegExp(`^${environment.MQTT_TOPIC_PREFIX}/([A-Z0-9]+)/event/raw$`)
 
 const topics = [
-  mqttAllTopic,
   mqttAllRawTopic,
-  mqttDeviceTopic,
   mqttDeviceRawTopic
 ]
 
@@ -47,7 +43,7 @@ client.on('message', (topic, payload) => {
   if (topic === mqttAllRawTopic) {
     const text = payload.toString('utf8')
     for (const url of environment.API_URLS) {
-      fetch(`${url}/devices/all/push-raw`, {
+      fetch(`${url}/devices/all/push/text`, {
         body: JSON.stringify({
           eventText: text
         }),
@@ -61,10 +57,12 @@ client.on('message', (topic, payload) => {
     }
     return
   }
-  if (topic === mqttAllTopic) {
+
+  const matches = mqttDeviceRawTopicRegex.exec(topic)
+  if (matches) {
     const text = payload.toString('utf8')
     for (const url of environment.API_URLS) {
-      fetch(`${url}/devices/all/push`, {
+      fetch(`${url}/devices/${matches[1]}/push/text`, {
         body: JSON.stringify({
           eventText: text
         }),
@@ -75,44 +73,6 @@ client.on('message', (topic, payload) => {
       }).catch(error => {
         logger.error(`Failed to push event: ${error}`)
       })
-    }
-  }
-  {
-    const matches = mqttDeviceTopicRegex.exec(topic)
-    if (matches) {
-      const text = payload.toString('utf8')
-      for (const url of environment.API_URLS) {
-        fetch(`${url}/devices/${matches[1]}/push`, {
-          body: JSON.stringify({
-            eventText: text
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          method: 'POST'
-        }).catch(error => {
-          logger.error(`Failed to push event: ${error}`)
-        })
-      }
-    }
-  }
-  {
-    const matches = mqttDeviceRawTopicRegex.exec(topic)
-    if (matches) {
-      const text = payload.toString('utf8')
-      for (const url of environment.API_URLS) {
-        fetch(`${url}/devices/${matches[1]}/push-raw`, {
-          body: JSON.stringify({
-            eventText: text
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          method: 'POST'
-        }).catch(error => {
-          logger.error(`Failed to push event: ${error}`)
-        })
-      }
     }
   }
 })
