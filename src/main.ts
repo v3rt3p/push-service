@@ -13,7 +13,6 @@ const client = connect(environment.MQTT_URL, {
 
 const mqttAllRawTopic = `${environment.MQTT_TOPIC_PREFIX}/event/raw`
 const mqttDeviceRawTopic = `${environment.MQTT_TOPIC_PREFIX}/+/event/raw`
-const mqttDeviceTopicRegex = new RegExp(`^${environment.MQTT_TOPIC_PREFIX}/([A-Z0-9]+)/event$`)
 const mqttDeviceRawTopicRegex = new RegExp(`^${environment.MQTT_TOPIC_PREFIX}/([A-Z0-9]+)/event/raw$`)
 
 const topics = [
